@@ -107,7 +107,7 @@ func NewWriter(driver, dbAddr string, bufferSize int, writeInterval time.Duratio
 		return nil, fmt.Errorf("failed to ping database: %v", err)
 	}
 
-	log.Print("Successfully connected to the database.\n\n")
+	log.Print("Successfully connected to the database.\n")
 
 	if err := createTable(db); err != nil {
 		return nil, fmt.Errorf("failed to create http logs table: %v", err)
@@ -134,17 +134,17 @@ func (w *Writer) Write(ctx context.Context, logs <-chan entity.HttpLogRecord) {
 	logBatchChannel := make(chan []entity.HttpLogRecord)
 	go func() {
 		for batch := range logBatchChannel {
-			log.Printf("Inserting logs buffer with %d log entries to the database...", len(batch))
+			log.Printf("Inserting logs buffer with %d log entries to the database...\n", len(batch))
 
 			for i := 0; true; i++ {
 				if err := insertLogs(w.db, batch); err != nil {
 					seconds := math.Pow(2, float64(i))
 					waitTime := time.Duration(seconds) * time.Second
 
-					log.Printf("Failed to insert logs: %v. Retrying after %f seconds...\n\n", err, seconds)
+					log.Printf("Failed to insert logs: %v. Retrying after %f seconds...\n", err, seconds)
 					time.Sleep(waitTime)
 				} else {
-					log.Printf("Logs (%d) were successfully inserted into the database!\n\n", len(batch))
+					log.Printf("Logs (%d) were successfully inserted into the database!\n", len(batch))
 					break
 				}
 			}
